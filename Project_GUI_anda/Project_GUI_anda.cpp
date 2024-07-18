@@ -1,6 +1,13 @@
-﻿#include <wx/wx.h>
-#include <iostream>
+﻿
 
+#include <wx/wx.h>
+#include <wx/url.h>
+#include <wx/listbook.h>
+#include <wx/wrapsizer.h>
+#include <iostream>
+#include <CJsonObject.hpp>
+#include <fstream>
+#include <string>
 
 enum
 {
@@ -18,11 +25,15 @@ public:
    
 private:
     void OnQuerySerialFirmware(wxCommandEvent& event);
-    void OnQueryNetworkFirmwareAndDownload(wxCommandEvent& event);
+    void OnQueryNetworkFirmware(wxCommandEvent& event);
+    void OnDownloadFirmware(wxCommandEvent& event);
     void OnBurnFirmware(wxCommandEvent& event);
-   
     void OnHelp(wxCommandEvent& event);
-   
+	void Ondownload_breath(wxCommandEvent& event);
+	void Ondownload_height(wxCommandEvent& event);
+	void Ondownload_human(wxCommandEvent& event);
+	void QueryFirmwareVersion();
+
 
     wxButton* querySerialFirmwareButton;
     wxButton* queryNetworkFirmwareAndDownloadButton;
@@ -33,19 +44,282 @@ private:
     wxMenuItem* helpMenu;
     wxMenuBar* FirmwareMenuBar;
     
+	std::string versions_breath;
+	std::string versions_height;
+	std::string versions_human;
+   
+
+
+	wxListbook* m_listbook1;
+	wxPanel* m_panel_network;
+	wxStaticText* m_staticText_breath;
+	wxButton* m_button_breath;
+	wxRadioBox* m_radioBox_breath;
+	wxStaticText* m_staticText_height;
+	wxButton* m_button_height;
+	wxRadioBox* m_radioBox_height;
+	wxStaticText* m_staticText_human;
+	wxButton* m_button_human;
+	wxRadioBox* m_radioBox_human;
+	wxButton* m_button2;
+	wxButton* m_button4;
+	wxPanel* m_panel_current;
+	wxButton* m_button14;
+	wxStaticText* m_staticText9;
+	wxTextCtrl* m_textCtrl1;
+	wxButton* m_button15;
+	wxPanel* m_panel_load;
+	wxChoice* m_choice1;
+	wxComboBox* m_comboBox1;
+	wxButton* m_button10;
+	wxButton* m_button9;
+
+	wxString m_radioBox_breathChoices[5] = { "默认版本" };
+	wxString m_radioBox_heightChoices[5] = { "默认版本" };
+	wxString m_radioBox_humanChoices[5] = { "默认版本" };
+	
+	
 };
 
-FirmwareGUI::FirmwareGUI(const wxString& title) : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(400, 300))
-{
-    Panel = new wxPanel(this, wxID_ANY);
 
+
+FirmwareGUI::FirmwareGUI(const wxString& title) : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(600, 400))
+{
+	this->SetSizeHints(wxDefaultSize, wxDefaultSize);
+
+	wxBoxSizer* bSizer1;
+	bSizer1 = new wxBoxSizer(wxVERTICAL);
+
+	m_listbook1 = new wxListbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLB_DEFAULT);
+	m_panel_network = new wxPanel(m_listbook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	wxBoxSizer* bSizer_Top;
+	bSizer_Top = new wxBoxSizer(wxVERTICAL);
+
+	wxStaticBoxSizer* wxStaticBoxSizer_Breath;
+	wxStaticBoxSizer_Breath = new wxStaticBoxSizer(new wxStaticBox(m_panel_network, wxID_ANY, _("Breath")), wxHORIZONTAL);
+
+	wxFlexGridSizer* fgSizer_breath;
+	fgSizer_breath = new wxFlexGridSizer(0, 1, 0, 0);
+	fgSizer_breath->SetFlexibleDirection(wxBOTH);
+	fgSizer_breath->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+	m_staticText_breath = new wxStaticText(wxStaticBoxSizer_Breath->GetStaticBox(), wxID_ANY, _("Version:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_staticText_breath->Wrap(-1);
+	fgSizer_breath->Add(m_staticText_breath, 0, wxALL, 5);
+
+	m_button_breath = new wxButton(wxStaticBoxSizer_Breath->GetStaticBox(), wxID_ANY, _("获取"), wxDefaultPosition, wxDefaultSize, 0);
+	Connect(m_button_breath->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::Ondownload_breath));
+	
+	fgSizer_breath->Add(m_button_breath, 0, wxALL, 5);
+	wxStaticBoxSizer_Breath->Add(fgSizer_breath, 1, wxEXPAND, 5);
+
+	wxFlexGridSizer* fgSizer_breath_bin;
+	fgSizer_breath_bin = new wxFlexGridSizer(0, 4, 0, 0);
+	fgSizer_breath_bin->SetFlexibleDirection(wxBOTH);
+	fgSizer_breath_bin->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+	QueryFirmwareVersion();
+	
+	int m_radioBox_breathNChoices = sizeof(m_radioBox_breathChoices) / sizeof(wxString);
+	m_radioBox_breath = new wxRadioBox(wxStaticBoxSizer_Breath->GetStaticBox(), wxID_ANY, _("Bin"), wxDefaultPosition, wxDefaultSize, m_radioBox_breathNChoices, m_radioBox_breathChoices, 1, wxRA_SPECIFY_ROWS);
+	m_radioBox_breath->SetSelection(0);
+	
+	fgSizer_breath_bin->Add(m_radioBox_breath, 0, wxALL, 5);
+
+
+	wxStaticBoxSizer_Breath->Add(fgSizer_breath_bin, 1, wxEXPAND, 5);
+
+
+	wxStaticBoxSizer_Breath->Add(0, 0, 1, wxEXPAND, 5);
+
+
+	bSizer_Top->Add(wxStaticBoxSizer_Breath, 1, wxEXPAND, 5);
+
+	wxStaticBoxSizer* wxStaticBoxSizer_Height;
+	wxStaticBoxSizer_Height = new wxStaticBoxSizer(new wxStaticBox(m_panel_network, wxID_ANY, _("Height")), wxHORIZONTAL);
+
+	wxFlexGridSizer* fgSizer_height;
+	fgSizer_height = new wxFlexGridSizer(0, 1, 0, 0);
+	fgSizer_height->SetFlexibleDirection(wxBOTH);
+	fgSizer_height->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+	m_staticText_height = new wxStaticText(wxStaticBoxSizer_Height->GetStaticBox(), wxID_ANY, _("Version:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_staticText_height->Wrap(-1);
+	fgSizer_height->Add(m_staticText_height, 0, wxALL, 5);
+
+	m_button_height = new wxButton(wxStaticBoxSizer_Height->GetStaticBox(), wxID_ANY, _("获取"), wxDefaultPosition, wxDefaultSize, 0);
+	Connect(m_button_height->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::Ondownload_height));
+
+	fgSizer_height->Add(m_button_height, 0, wxALL, 5);
+	wxStaticBoxSizer_Height->Add(fgSizer_height, 1, wxEXPAND, 5);
+
+	wxFlexGridSizer* fgSizer_height_bin;
+	fgSizer_height_bin = new wxFlexGridSizer(0, 4, 0, 0);
+	fgSizer_height_bin->SetFlexibleDirection(wxBOTH);
+	fgSizer_height_bin->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+	
+	int m_radioBox_heightNChoices = sizeof(m_radioBox_heightChoices) / sizeof(wxString);
+	m_radioBox_height = new wxRadioBox(wxStaticBoxSizer_Height->GetStaticBox(), wxID_ANY, _("Bin"), wxDefaultPosition, wxDefaultSize, m_radioBox_heightNChoices, m_radioBox_heightChoices, 1, wxRA_SPECIFY_ROWS);
+	m_radioBox_height->SetSelection(1);
+	fgSizer_height_bin->Add(m_radioBox_height, 0, wxALL, 5);
+
+
+	wxStaticBoxSizer_Height->Add(fgSizer_height_bin, 1, wxEXPAND, 5);
+
+
+	wxStaticBoxSizer_Height->Add(0, 0, 1, wxEXPAND, 5);
+
+
+	bSizer_Top->Add(wxStaticBoxSizer_Height, 1, wxEXPAND, 5);
+
+	wxStaticBoxSizer* wxStaticBoxSizer_Human;
+	wxStaticBoxSizer_Human = new wxStaticBoxSizer(new wxStaticBox(m_panel_network, wxID_ANY, _("Human")), wxHORIZONTAL);
+
+	wxFlexGridSizer* fgSizer_human;
+	fgSizer_human = new wxFlexGridSizer(0, 1, 0, 0);
+	fgSizer_human->SetFlexibleDirection(wxBOTH);
+	fgSizer_human->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+	m_staticText_human = new wxStaticText(wxStaticBoxSizer_Human->GetStaticBox(), wxID_ANY, _("Version:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_staticText_human->Wrap(-1);
+	fgSizer_human->Add(m_staticText_human, 0, wxALL, 5);
+
+	m_button_human = new wxButton(wxStaticBoxSizer_Human->GetStaticBox(), wxID_ANY, _("获取"), wxDefaultPosition, wxDefaultSize, 0);	
+	Connect(m_button_human->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::Ondownload_human));
+	
+	fgSizer_human->Add(m_button_human, 0, wxALL, 5);
+	wxStaticBoxSizer_Human->Add(fgSizer_human, 1, wxEXPAND, 5);
+
+	wxFlexGridSizer* fgSizer_human_bin;
+	fgSizer_human_bin = new wxFlexGridSizer(0, 4, 0, 0);
+	fgSizer_human_bin->SetFlexibleDirection(wxBOTH);
+	fgSizer_human_bin->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+	
+	int m_radioBox_humanNChoices = sizeof(m_radioBox_humanChoices) / sizeof(wxString);
+	m_radioBox_human = new wxRadioBox(wxStaticBoxSizer_Human->GetStaticBox(), wxID_ANY, _("Bin"), wxDefaultPosition, wxDefaultSize, m_radioBox_humanNChoices, m_radioBox_humanChoices, 1, wxRA_SPECIFY_ROWS);
+	m_radioBox_human->SetSelection(1);
+	fgSizer_human_bin->Add(m_radioBox_human, 0, wxALL, 5);
+
+
+	wxStaticBoxSizer_Human->Add(fgSizer_human_bin, 1, wxEXPAND, 5);
+
+
+	wxStaticBoxSizer_Human->Add(0, 0, 1, wxEXPAND, 5);
+
+
+	bSizer_Top->Add(wxStaticBoxSizer_Human, 1, wxEXPAND, 5);
+
+	wxWrapSizer* wSizer2;
+	wSizer2 = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
+
+	m_button2 = new wxButton(m_panel_network, wxID_ANY, _("查询"), wxDefaultPosition, wxDefaultSize, 0);
+	wSizer2->Add(m_button2, 0, wxALL, 5);
+
+	m_button4 = new wxButton(m_panel_network, wxID_ANY, _("取消"), wxDefaultPosition, wxDefaultSize, 0);
+	wSizer2->Add(m_button4, 0, wxALL, 5);
+
+
+	bSizer_Top->Add(wSizer2, 1, wxEXPAND, 5);
+
+
+	m_panel_network->SetSizer(bSizer_Top);
+	m_panel_network->Layout();
+	bSizer_Top->Fit(m_panel_network);
+	m_listbook1->AddPage(m_panel_network, _("查询网络固件版本"), true);
+	m_panel_current = new wxPanel(m_listbook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	wxBoxSizer* bSizer19;
+	bSizer19 = new wxBoxSizer(wxVERTICAL);
+
+	wxBoxSizer* bSizer20;
+	bSizer20 = new wxBoxSizer(wxHORIZONTAL);
+
+	m_button14 = new wxButton(m_panel_current, wxID_ANY, _("查询"), wxDefaultPosition, wxDefaultSize, 0);
+	bSizer20->Add(m_button14, 0, wxALL, 5);
+
+	m_staticText9 = new wxStaticText(m_panel_current, wxID_ANY, _("当前版本："), wxDefaultPosition, wxDefaultSize, 0);
+	m_staticText9->Wrap(-1);
+	bSizer20->Add(m_staticText9, 0, wxALL, 5);
+
+	m_textCtrl1 = new wxTextCtrl(m_panel_current, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+	bSizer20->Add(m_textCtrl1, 0, wxALL, 5);
+
+	m_button15 = new wxButton(m_panel_current, wxID_ANY, _("MyButton"), wxDefaultPosition, wxDefaultSize, 0);
+	bSizer20->Add(m_button15, 0, wxALL, 5);
+
+
+	bSizer19->Add(bSizer20, 1, wxEXPAND, 5);
+
+
+	m_panel_current->SetSizer(bSizer19);
+	m_panel_current->Layout();
+	bSizer19->Fit(m_panel_current);
+	m_listbook1->AddPage(m_panel_current, _("查询当前固件版本"), false);
+	m_panel_load = new wxPanel(m_listbook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	wxBoxSizer* bSizer_load;
+	bSizer_load = new wxBoxSizer(wxVERTICAL);
+
+	wxBoxSizer* bSizer12;
+	bSizer12 = new wxBoxSizer(wxVERTICAL);
+
+	wxArrayString m_choice1Choices;
+	m_choice1 = new wxChoice(m_panel_load, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_choice1Choices, 0);
+	m_choice1->SetSelection(0);
+	bSizer12->Add(m_choice1, 0, wxALL, 5);
+
+	m_comboBox1 = new wxComboBox(m_panel_load, wxID_ANY, _("Combo!"), wxDefaultPosition, wxDefaultSize, 0, NULL, 0);
+	bSizer12->Add(m_comboBox1, 0, wxALL, 5);
+
+	m_button10 = new wxButton(m_panel_load, wxID_ANY, _("borwn"), wxDefaultPosition, wxDefaultSize, 0);
+	bSizer12->Add(m_button10, 0, wxALL, 5);
+
+
+	bSizer_load->Add(bSizer12, 1, wxEXPAND, 5);
+
+	wxBoxSizer* bSizer13;
+	bSizer13 = new wxBoxSizer(wxVERTICAL);
+
+	m_button9 = new wxButton(m_panel_load, wxID_ANY, _("一键烧录"), wxDefaultPosition, wxDefaultSize, 0);
+	bSizer13->Add(m_button9, 0, wxALL, 5);
+
+
+	bSizer_load->Add(bSizer13, 1, wxEXPAND, 5);
+
+
+	m_panel_load->SetSizer(bSizer_load);
+	m_panel_load->Layout();
+	bSizer_load->Fit(m_panel_load);
+	m_listbook1->AddPage(m_panel_load, _("烧录"), false);
+#ifdef __WXGTK__ // Small icon style not supported in GTK
+	wxListView* m_listbook1ListView = m_listbook1->GetListView();
+	long m_listbook1Flags = m_listbook1ListView->GetWindowStyleFlag();
+	if (m_listbook1Flags & wxLC_SMALL_ICON)
+	{
+		m_listbook1Flags = (m_listbook1Flags & ~wxLC_SMALL_ICON) | wxLC_ICON;
+	}
+	m_listbook1ListView->SetWindowStyleFlag(m_listbook1Flags);
+#endif
+
+	bSizer1->Add(m_listbook1, 1, wxEXPAND | wxALL, 5);
+
+
+	this->SetSizer(bSizer1);
+	this->Layout();
+
+	this->Centre(wxBOTH);
+
+
+
+    /*Panel = new wxPanel(this, wxID_ANY);
+    
 
     querySerialFirmwareButton = new wxButton(Panel, wxID_ANY, "查询串口固件", wxPoint(50, 50));
     queryNetworkFirmwareAndDownloadButton = new wxButton(Panel, wxID_ANY, "查询网络固件与下载", wxPoint(50, 100));
     burnFirmwareButton = new wxButton(Panel, wxID_ANY, "烧录固件", wxPoint(50, 150));
 
     Connect(querySerialFirmwareButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::OnQuerySerialFirmware));
-    Connect(queryNetworkFirmwareAndDownloadButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::OnQueryNetworkFirmwareAndDownload));
+    Connect(queryNetworkFirmwareAndDownloadButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::OnQueryNetworkFirmware));
     Connect(burnFirmwareButton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::OnBurnFirmware));
     
 
@@ -62,7 +336,7 @@ FirmwareGUI::FirmwareGUI(const wxString& title) : wxFrame(NULL, wxID_ANY, title,
 
  
     SetMenuBar(FirmwareMenuBar);
-    CreateStatusBar();
+    CreateStatusBar();*/
 
 }
 
@@ -74,22 +348,170 @@ void FirmwareGUI::OnQuerySerialFirmware(wxCommandEvent& event)
 {
     // 这里实现查询串口固件版本的代码
     wxMessageBox(wxT("this is 查询串口固件版本!"), wxT("查询串口固件"), wxOK | wxICON_INFORMATION, this);
+    
 }
 
-void FirmwareGUI::OnQueryNetworkFirmwareAndDownload(wxCommandEvent& event)
+void FirmwareGUI::OnQueryNetworkFirmware(wxCommandEvent& event)
 {
     // 这里实现查询网络固件版本和下载的代码
     wxMessageBox(wxT("this is 查询网络固件版本与下载!"), wxT("查询网络固件版本与下载"), wxOK | wxICON_INFORMATION, this);
+    QueryFirmwareVersion();
+
+	
+
+
+	
+    
 
 }
+void FirmwareGUI::Ondownload_breath(wxCommandEvent& event)
+{
+	if (m_radioBox_breath->GetSelection() == 1 || m_radioBox_breath->GetSelection() == 2)
+	{
+		wxURL url("http://....");
+		if (url.GetError() != wxURL_NOERR)
+		{
+			wxLogError("can not access");
+			return;
+		}
+		wxInputStream* InStream = url.GetInputStream();
+		if (!InStream)
+		{
+			wxLogError("failed to get input stream!");
+			return;
+		}
+		
+		//接受缓存
+		wxString wxReceiData;
+		char Buffer[1024];
+		while (! InStream->Read(Buffer, sizeof(Buffer)))
+		{
+		    wxReceiData += wxString(Buffer, InStream->LastRead());
+		}
 
+		//.....
+
+	}
+    wxMessageBox("Download succeful","Firmware Download", wxOK | wxICON_INFORMATION,this);
+
+}
+void FirmwareGUI::Ondownload_height(wxCommandEvent& event)
+{
+	;
+}
+void FirmwareGUI::Ondownload_human(wxCommandEvent& event)
+{
+	;
+}
 void FirmwareGUI::OnBurnFirmware(wxCommandEvent& event)
 {
     // 这里实现烧录固件的代码
     wxMessageBox(wxT("this is 烧录固件!"), wxT("烧录固件"), wxOK | wxICON_INFORMATION, this);
-
+    wxLogError("can not access");
 }
+    
 
+
+
+void FirmwareGUI::QueryFirmwareVersion()
+{
+    //wxURL url("http://....");
+    //if (url.GetError() != wxURL_NOERR)
+    //{
+    //    wxLogError("can not access");
+    //    return;
+    //}
+    //wxInputStream* InStream = url.GetInputStream();
+    //if (!InStream)
+    //{
+    //    wxLogError("failed to get input stream!");
+    //    return;
+    //}
+    ////接受缓存
+    wxString wxReceiData;
+    //char Buffer[1024];
+    //while (! InStream->Read(Buffer, sizeof(Buffer)))
+    //{
+    //    wxReceiData += wxString(Buffer, InStream->LastRead());
+    //}
+
+
+    std::ifstream file("abc.txt");
+    if (!file.is_open())
+    {
+        wxLogError("fail open file");
+        return;
+    }
+    char c;
+    std::string filedata;
+    while (file.get(c)) {
+        filedata += c;
+    }
+    file.close();
+    std::string str = "praise";
+    neb::CJsonObject Ojson;
+    
+	if (Ojson.Parse(filedata))
+	{
+		/*
+			{
+				"Top": {
+							"breath": ["1.0.bin"],
+							"height": ["1.0.bin","2.0.bin"],
+							"human"	: ["1.0.bin","2.0.bin","3.0.bin"]
+						}
+			}
+		*/
+		str = Ojson.ToString();
+		wxMessageBox(str);
+		int num_out = 3;
+		std::string funcName[3] = { "breath","height","human"};
+		
+		for (int i = 0;i < num_out; i++) 
+		{
+
+			int num_in = Ojson["Top"][funcName[i]].GetArraySize();
+			for (int j = 0; j < num_in ;j++)
+			{
+				std::string strtmp = Ojson["Top"][funcName[i]](j);
+				//wxMessageBox(strtmp);
+				switch (i)
+				{
+				case 0:	m_radioBox_breathChoices[j+1] = strtmp; //避免覆盖默认值
+					break;
+				case 1: m_radioBox_heightChoices[j+1] = strtmp;
+					break;
+				case 2:	m_radioBox_humanChoices[j+1] = strtmp;
+					break;
+				default:
+					break;
+				}
+			}
+			//Ojson["Top"].Get("breath", versions_breath);
+			//wxMessageBox(versions_breath);
+		}
+    }
+    else
+    {
+        wxMessageBox("failed to parse Json data!");
+    }
+    
+}
+//std::string* filetestdemo(const char* filename)
+//{
+//    std::ifstream file(filename);
+//    if (!file.is_open())
+//    {
+//        wxLogError("fail open file");
+//        return NULL;
+//    }
+//    char c;
+//    std::string* filedata = new(std::string);
+//    while (file.get(c)) {
+//        filedata += c;
+//    }
+//    file.close();
+//}
 class MyApp : public wxApp
 {
 public:

@@ -70,6 +70,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>F:\Visual_Studio\C++_Project\Project_GUI_anda\Project_GUI_anda;$(IncludePath)</IncludePath>
+    <ReferencePath>F:\Visual_Studio\C++_Project\Project_GUI_anda\Project_GUI_anda;$(ReferencePath)</ReferencePath>
+    <LibraryPath>F:\Visual_Studio\C++_Project\Project_GUI_anda\Project_GUI_anda;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -129,7 +134,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cJSON.c" />
+    <ClCompile Include="CJsonObject.cpp" />
     <ClCompile Include="Project_GUI_anda.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cJSON.h" />
+    <ClInclude Include="CJsonObject.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\test.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="abc.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
