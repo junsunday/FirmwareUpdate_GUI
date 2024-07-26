@@ -1,7 +1,7 @@
 {
     "Top": {
-        "breath": ["1.0.bin","1.3.Bin","2.1.Bin","3,7.Bin"],
-        "height": [ "1.0.bin", "2.0.bin" ],
+        "breath": ["1.0.bin","2.0.Bin","3.0.Bin","4.0.Bin"],
+        "height": [ "1.0.bin","2.0.Bin","3.0.bin" ],
         "human": [ "1.0.bin", "2.0.bin", "3.0.bin" ]
             }
 }
